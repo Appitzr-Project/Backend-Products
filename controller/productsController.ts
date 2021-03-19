@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { venueAttribute, venueProfileModel } from "@appitzr-project/db-model";
+import { productsModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated, validateGroup } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 
@@ -13,33 +13,34 @@ const ddb = new AWS.DynamoDB.DocumentClient({ endpoint: process.env.DYNAMODB_LOC
  * @param res
  * @param next
  */
-export const profileIndex = async (
+export const getProductsPublicById = async (
   req: RequestAuthenticated,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // validate group
-    const user = await validateGroup(req, "venue");
+    const idProduct = req.param('id');
 
     // dynamodb parameter
-    const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
-      TableName: venueProfileModel.TableName,
-      Key: {
-        venueEmail: user.email,
-        cognitoId: user.sub
+    const paramDB = {
+      TableName: productsModel.TableName,
+      KeyConditionExpression: "#ip = :idProduct",
+      ExpressionAttributeNames:{
+          "#ip": "id"
       },
-      AttributesToGet: venueAttribute
+      ExpressionAttributeValues: {
+          ":idProduct": idProduct
+      },
     }
 
     // query to database
-    const queryDB = await ddb.get(paramDB).promise();
+    const queryDB = await ddb.query(paramDB).promise();
 
     // return response
     return res.json({
       code: 200,
       message: "success",
-      data: queryDB?.Item
+      data: queryDB?.Items
     });
   } catch (e) {
     next(e);

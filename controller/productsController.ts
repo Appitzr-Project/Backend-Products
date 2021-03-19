@@ -32,7 +32,7 @@ export const getProductsPublicById = async (
       ExpressionAttributeValues: {
           ":idProduct": idProduct,
           ":ia": true
-      },
+      }
     }
 
     // query to database
@@ -42,7 +42,7 @@ export const getProductsPublicById = async (
     return res.json({
       code: 200,
       message: "success",
-      data: queryDB?.Items
+      data: queryDB?.Items[0]
     });
   } catch (e) {
     next(e);
@@ -71,7 +71,7 @@ export const getProductsVenueById = async (
       ExpressionAttributeValues: {
           ":idProduct": idProduct,
           ":vi": userDetail.sub
-      },
+      }
     }
 
     // query to database
@@ -81,7 +81,7 @@ export const getProductsVenueById = async (
     return res.json({
       code: 200,
       message: "success",
-      data: queryDB?.Items
+      data: queryDB?.Items[0]
     });
   } catch (e) {
     next(e);

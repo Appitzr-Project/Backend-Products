@@ -25,11 +25,52 @@ export const getProductsPublicById = async (
     const paramDB = {
       TableName: productsModel.TableName,
       KeyConditionExpression: "#ip = :idProduct",
+      FilterExpression: "isActive = :ia",
       ExpressionAttributeNames:{
           "#ip": "id"
       },
       ExpressionAttributeValues: {
-          ":idProduct": idProduct
+          ":idProduct": idProduct,
+          ":ia": true
+      },
+    }
+
+    // query to database
+    const queryDB = await ddb.query(paramDB).promise();
+
+    // return response
+    return res.json({
+      code: 200,
+      message: "success",
+      data: queryDB?.Items
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const getProductsVenueById = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // validate group
+    const userDetail = await validateGroup(req, "venue");
+
+    const idProduct = req.param('id');
+
+    // dynamodb parameter
+    const paramDB = {
+      TableName: productsModel.TableName,
+      KeyConditionExpression: "#ip = :idProduct AND #vid = :vi",
+      ExpressionAttributeNames:{
+          "#ip": "id",
+          "#vid": "venueId"
+      },
+      ExpressionAttributeValues: {
+          ":idProduct": idProduct,
+          ":vi": userDetail.sub
       },
     }
 

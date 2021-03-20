@@ -87,3 +87,44 @@ export const getProductsVenueById = async (
     next(e);
   }
 };
+
+
+/**
+ * Index Data Function
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
+ export const getProductByVenueId = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // validate group
+    const user = await validateGroup(req, "venue");
+    
+    // dynamodb parameter
+    const paramDB = {
+      TableName: productsModel.TableName,
+      IndexName: "venueId-index",
+      KeyConditionExpression: "venueId = :venueId", 
+      ExpressionAttributeValues: {                
+              ":venueId": user.sub              
+          }
+    }
+
+    // query to database
+    const queryDB = await ddb.query(paramDB).promise();
+
+    // return response
+    return res.json({
+      code: 200,
+      message: "success",
+      data: queryDB      
+    });
+  } catch (e) {
+    next(e);
+  }
+};

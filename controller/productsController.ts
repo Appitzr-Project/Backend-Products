@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { productsModel, venueAttribute, venueProfileModel } from "@appitzr-project/db-model";
+import { productsModel, venueProfileModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated, validateGroup } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 
@@ -117,14 +117,26 @@ export const getProductsVenueById = async (
   try {
     // validate group
     const user = await validateGroup(req, "venue");
-    
+
+    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: venueProfileModel.TableName,
+      Key: {
+        venueEmail: user.email,
+        cognitoId: user.sub
+      },
+      AttributesToGet: ['id']
+    }
+
+    // query to database
+    const resVenueId = await ddb.get(paramGetVenueId).promise();
+
     // dynamodb parameter
     const paramDB = {
       TableName: productsModel.TableName,
       IndexName: "venueId-index",
       KeyConditionExpression: "venueId = :venueId", 
       ExpressionAttributeValues: {                
-              ":venueId": user.sub              
+              ":venueId": resVenueId?.Item.id              
           }
     }
 

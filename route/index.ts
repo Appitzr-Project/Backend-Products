@@ -1,12 +1,14 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { profileIndex } from '../controller/profileController';
+import { getProductsPublicById, getProductsVenueById, getProductByVenueId } from '../controller/productsController';
 
 // Route Declare
 const route = express.Router();
 
 // Route List
-route.get('/', profileIndex);
+route.get('/:id', getProductsPublicById);
+route.get('/venue/:id', getProductsVenueById);
+route.get('/venue', getProductByVenueId);
 
 // health check api
 route.get('/health-check', (req: Request, res: Response) => {

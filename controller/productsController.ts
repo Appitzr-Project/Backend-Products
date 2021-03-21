@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { validationResult } from 'express-validator';
-import { products, productsModel } from "@appitzr-project/db-model";
+import { products, productsModel, venueProfileModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated, validateGroup, userDetail } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -149,6 +149,19 @@ export const getProductsVenueById = async (
       // get userdetail from header
       const user = userDetail(req);
   
+      const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+        TableName: venueProfileModel.TableName,
+        Key: {
+          venueEmail: user.email,
+          cognitoId: user.sub
+        },
+        AttributesToGet: ['id']
+      }
+  
+      // query to database
+      const resVenueId = await ddb.get(paramGetVenueId).promise();
+      console.log(resVenueId?.Item.id);
+      
       // exapress validate input
       const errors = validationResult(req);
       if(!errors.isEmpty()) {
@@ -161,7 +174,7 @@ export const getProductsVenueById = async (
       // venue profile input with typescript definition
       const productInput : products = {
         id: uuidv4(),            
-        venueId: user.sub,
+        venueId: resVenueId?.Item.id,
         productName: product.productName,
         description: product.description,
         price: product.price,

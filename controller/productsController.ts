@@ -60,6 +60,19 @@ export const getProductsVenueById = async (
     // validate group
     const userDetail = await validateGroup(req, "venue");
 
+
+    // dynamodb parameter
+    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: venueProfileModel.TableName,
+      Key: {
+        venueEmail: userDetail.email,
+        cognitoId: userDetail.sub
+      },
+      AttributesToGet: ['id']
+    }
+
+    // query to database
+    const resVenueId = await ddb.get(paramGetVenueId).promise();
     const idProduct = req.param('id');
 
     // dynamodb parameter
@@ -72,7 +85,7 @@ export const getProductsVenueById = async (
       },
       ExpressionAttributeValues: {
           ":idProduct": idProduct,
-          ":vi": userDetail.sub
+          ":vi": resVenueId?.Item.id
       }
     }
 
@@ -106,14 +119,26 @@ export const getProductsVenueById = async (
   try {
     // validate group
     const user = await validateGroup(req, "venue");
-    
+        
+    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: venueProfileModel.TableName,
+      Key: {
+        venueEmail: user.email,
+        cognitoId: user.sub
+      },
+      AttributesToGet: ['id']
+    }
+
+    // query to database
+    const resVenueId = await ddb.get(paramGetVenueId).promise();
+
     // dynamodb parameter
     const paramDB = {
       TableName: productsModel.TableName,
       IndexName: "venueId-index",
       KeyConditionExpression: "venueId = :venueId", 
       ExpressionAttributeValues: {                
-              ":venueId": user.sub              
+              ":venueId": resVenueId?.Item.id              
           }
     }
 
@@ -130,7 +155,6 @@ export const getProductsVenueById = async (
     next(e);
   }
 };
-
 
 /**
  * Store data to database

@@ -135,7 +135,7 @@ export const getProductsVenueById = async (
     // dynamodb parameter
     const paramDB = {
       TableName: productsModel.TableName,
-      IndexName: "venueId-index",
+      IndexName: "venueIdProductNameindex",
       KeyConditionExpression: "venueId = :venueId", 
       ExpressionAttributeValues: {                
               ":venueId": resVenueId?.Item.id              
@@ -149,7 +149,7 @@ export const getProductsVenueById = async (
     return res.json({
       code: 200,
       message: "success",
-      data: queryDB      
+      data: queryDB?.Items
     });
   } catch (e) {
     next(e);

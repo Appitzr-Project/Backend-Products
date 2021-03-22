@@ -6,10 +6,10 @@ import { getProductsPublicById, getProductsVenueById, getProductByVenueId, produ
 const route = express.Router();
 
 // Route List
-route.get('/:id', getProductsPublicById);
 route.get('/venue/:id', getProductsVenueById);
 route.get('/venue', getProductByVenueId);
 route.post('/venue', productsStore);
+route.get('/:id', getProductsPublicById);
 
 // health check api
 route.get('/health-check', (req: Request, res: Response) => {

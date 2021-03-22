@@ -15,9 +15,11 @@ const serverlessConfiguration: Serverless = {
         runtime: 'nodejs12.x',
         region: '${opt:region, "ap-southeast-2"}',
         stage: '${opt:stage, "dev"}',
-        memorySize: 128,
+        memorySize: 256,
+        timeout: 15,
         apiGateway: {
-            minimumCompressionSize: 1024,
+            minimumCompressionSize: 0,
+            binaryMediaTypes: [ '*/*' ],
         },
         environment: {
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
@@ -37,13 +39,25 @@ const serverlessConfiguration: Serverless = {
                     "dynamodb:DeleteItem"
                 ],
                 Resource: [
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/VenueProfile',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/Products',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/Orders',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/UserProfile',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/UserFavorites',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_VenueProfile',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_Products',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_Orders',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_UserProfile',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_UserFavorites',
                 ],
-            }
+            },
+            {
+                Effect: 'Allow',
+                Action: [
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:PutObjectAcl"
+                ],
+                Resource: [
+                    'arn:aws:s3:::${env:AWS_S3_BUCKET}',
+                    'arn:aws:s3:::${env:AWS_S3_BUCKET}/*'
+                ]
+            },
         ],
     },
     functions: {

@@ -23,6 +23,8 @@ const serverlessConfiguration: Serverless = {
         },
         environment: {
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+            NODE_ENV: '${env:NODE_ENV}',
+            AWS_S3_BUCKET: '${env:AWS_S3_BUCKET}',
         },
         // Grant Access to DynamoDB
         iamRoleStatements: [

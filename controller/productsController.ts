@@ -1,12 +1,33 @@
 import { Response, NextFunction } from "express";
-import { validationResult } from 'express-validator';
-import { products, productsModel, venueProfileModel } from "@appitzr-project/db-model";
+import { validationResult, ValidationChain, body } from 'express-validator';
+import { products, productsModel, venueProfileModel, productCategory } from "@appitzr-project/db-model";
 import { RequestAuthenticated, validateGroup, userDetail } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
 // declare database dynamodb
 const ddb = new AWS.DynamoDB.DocumentClient({ endpoint: process.env.DYNAMODB_LOCAL, convertEmptyValues: true });
+
+export const productsStoreValidation : ValidationChain[] = [
+  body('productName').notEmpty().isString(),
+  body('description').notEmpty().isString(),
+  body('price').notEmpty().isNumeric(),
+  body('category').notEmpty().isString().isIn(productCategory),
+  body('images').notEmpty().isArray(),
+  body('proteinType').notEmpty().isString(),
+  body('isActive').notEmpty().isBoolean()
+]
+
+export const productsUpdateValidation : ValidationChain[] = [
+  body('productName').notEmpty().isString(),
+  body('description').notEmpty().isString(),
+  body('price').notEmpty().isNumeric(),
+  body('category').notEmpty().isString().isIn(productCategory),
+  body('images').notEmpty().isArray(),
+  body('proteinType').notEmpty().isString(),
+  body('isActive').notEmpty().isBoolean()
+]
+
 
 /**
  * Index Data Function
@@ -135,7 +156,7 @@ export const getProductsVenueById = async (
     // dynamodb parameter
     const paramDB = {
       TableName: productsModel.TableName,
-      IndexName: "venueIdProductNameindex",
+      IndexName: "venueId-index",
       KeyConditionExpression: "venueId = :venueId", 
       ExpressionAttributeValues: {                
               ":venueId": resVenueId?.Item.id              
@@ -240,3 +261,150 @@ export const getProductsVenueById = async (
       next(e);
     }
   };
+
+ /**
+ * Index Data Function
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
+ export const updateProductById = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // get userdetail from header
+    const productId = req.params.id
+    const user = userDetail(req);
+  
+    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: venueProfileModel.TableName,
+      Key: {
+        venueEmail: user.email,
+        cognitoId: user.sub
+      },
+      AttributesToGet: ['id']
+    }
+
+    // query to database
+    const resVenueId = await ddb.get(paramGetVenueId).promise();
+
+    // exapress validate input
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // get input
+    const product : products = req.body;
+
+    const paramsDB : AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+      TableName: productsModel.TableName,
+      Key: {
+        id: productId,
+        venueId: resVenueId?.Item.id
+      },
+      UpdateExpression: `
+        set
+          productName = :pn,
+          description = :dc,
+          price       = :pc,
+          category    = :cg,
+          images      = :ig,
+          proteinType = :pt,
+          isActive    = :ia,
+          updatedAt   = :ua
+      `,
+      ExpressionAttributeValues: {
+        ':pn' : product.productName,
+        ':dc' : product.description,
+        ':pc' : product.price,
+        ':cg' : product.category,
+        ':ig' : product.images,
+        ':pt' : product.proteinType,
+        ':ia' : product.isActive,
+        ':ua' : new Date().toISOString()
+      },
+      ReturnValues: 'UPDATED_NEW',
+    }
+
+    const queryDB = await ddb.update(paramsDB).promise();
+
+    // return result
+    return res.status(200).json({
+      code: 200,
+      message: 'success',
+      data: queryDB?.Attributes
+    });
+
+  } catch (e) {
+     /**
+       * Return error kalau expression data udh ada
+       */
+      if(e?.code == 'ConditionalCheckFailedException') {
+        next(new Error('Data Already Exist.!'));
+      }
+  
+      // return default error
+      next(e);
+  }
+}
+
+/**
+ * Store data to database
+ * 
+ * @param req RequestAuthenticated
+ * @param res Response
+ * @param next NextFunction
+ * @returns 
+ */
+ export const deleteProductById = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const productId = req.params.id
+    const user = userDetail(req);
+  
+    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: venueProfileModel.TableName,
+      Key: {
+        venueEmail: user.email,
+        cognitoId: user.sub
+      },
+      AttributesToGet: ['id']
+    }
+
+    // query to database
+    const resVenueId = await ddb.get(paramGetVenueId).promise();
+
+    const paramsDB : AWS.DynamoDB.DocumentClient.DeleteItemInput = {
+      TableName: productsModel.TableName,
+      Key: {
+        id: productId,
+        venueId: resVenueId?.Item.id
+      }
+    }
+
+    await ddb.delete(paramsDB);
+
+    // return result
+    return res.status(200).json({
+      code: 200,
+      message: 'success'
+    });
+  } catch (e) {
+    /**
+       * Return error kalau expression data udh ada
+       */
+     if(e?.code == 'ConditionalCheckFailedException') {
+      next(new Error('Data Already Exist.!'));
+    }
+
+    // return default error
+    next(e);
+  }
+}

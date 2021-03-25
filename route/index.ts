@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { getProductsPublicById, getProductsVenueById, getProductByVenueId, productsStore } from '../controller/productsController';
+import { getProductsPublicById, getProductsVenueById, getProductByVenueId, productsStore, updateProductById, productsStoreValidation, productsUpdateValidation, deleteProductById } from '../controller/productsController';
 import {
     productUploadValidate,
     productMenuUpload
@@ -11,7 +11,9 @@ const route = express.Router();
 
 // Route List
 route.get('/venue', getProductByVenueId);
-route.post('/venue', productsStore);
+route.post('/venue', productsStoreValidation, productsStore);
+route.put('/venue/:id', productsUpdateValidation, updateProductById);
+route.delete('/venue/:id', deleteProductById);
 
 // route upload image
 route.post('/venue/upload', productUploadValidate, productMenuUpload);

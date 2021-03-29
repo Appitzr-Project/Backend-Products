@@ -156,7 +156,7 @@ export const getProductByVenueId = async (
     // dynamodb parameter
     const paramDB = {
       TableName: productsModel.TableName,
-      IndexName: "venueId-index",
+      IndexName: "idIndex",
       KeyConditionExpression: "venueId = :venueId",
       ExpressionAttributeValues: {
         ":venueId": resVenueId?.Item.id
@@ -389,7 +389,7 @@ export const deleteProductById = async (
       }
     }
 
-    await ddb.delete(paramsDB);
+    await ddb.delete(paramsDB).promise();
 
     // return result
     return res.status(200).json({

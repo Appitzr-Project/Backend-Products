@@ -408,3 +408,50 @@ export const deleteProductById = async (
     next(e);
   }
 }
+
+/**
+ * Index Data Function
+ *
+ * @param req
+ * @param res
+ * @param next
+*/
+export const getProductByVenueIdPublic = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const dataGet = req.query;
+    
+    // validation if venueid is empty 
+    if (dataGet.venueid == '' || dataGet.venueid == null) {
+      throw new Error("venueid is required!");
+    }
+
+    // get venueid data
+    const idVenue = dataGet.venueid;
+
+    // dynamodb parameter
+    const paramDB = {
+      TableName: productsModel.TableName,
+      IndexName: "venueIdProductNameindex",
+      KeyConditionExpression: "venueId = :venueId",
+      ExpressionAttributeValues: {
+        ":venueId": idVenue
+      }
+    }
+
+    // query to database
+    const queryDB = await ddb.query(paramDB).promise();
+
+    // return response
+    return res.json({
+      code: 200,
+      message: "success",
+      data: queryDB?.Items
+    });
+  } catch (e) {
+    next(e);
+  }
+};

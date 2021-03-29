@@ -1,6 +1,18 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { getProductsPublicById, getProductsVenueById, getProductByVenueId, productsStore, updateProductById, productsStoreValidation, productsUpdateValidation, deleteProductById, getProductByVenueIdPublic } from '../controller/productsController';
+import {
+    getProductsPublicById,
+    getProductByVenueIdPublic
+} from '../controller/productsController';
+import {
+    getProductsVenueById,
+    getProductByVenueId,
+    productsStore,
+    updateProductById,
+    productsStoreValidation,
+    productsUpdateValidation,
+    deleteProductById
+} from '../controller/productVenueController';
 import {
     productUploadValidate,
     productMenuUpload
@@ -15,15 +27,15 @@ route.post('/venue', productsStoreValidation, productsStore);
 route.put('/venue/:id', productsUpdateValidation, updateProductById);
 route.delete('/venue/:id', deleteProductById);
 
-// Route Get Products by Id Venue (public)
-route.get('/', getProductByVenueIdPublic);
-
 // route upload image
 route.post('/venue/upload', productUploadValidate, productMenuUpload);
 
 // catch all id
 route.get('/venue/:id', getProductsVenueById);
 route.get('/:id', getProductsPublicById);
+
+// Route Get Products by Id Venue (public)
+route.get('/', getProductByVenueIdPublic);
 
 // health check api
 route.get('/health-check', (req: Request, res: Response) => {

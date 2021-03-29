@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 // declare database dynamodb
 const ddb = new AWS.DynamoDB.DocumentClient({ endpoint: process.env.DYNAMODB_LOCAL, convertEmptyValues: true });
 
-export const productsStoreValidation : ValidationChain[] = [
+export const productsStoreValidation: ValidationChain[] = [
   body('productName').notEmpty().isString(),
   body('description').notEmpty().isString(),
   body('price').notEmpty().isNumeric(),
@@ -18,7 +18,7 @@ export const productsStoreValidation : ValidationChain[] = [
   body('isActive').notEmpty().isBoolean()
 ]
 
-export const productsUpdateValidation : ValidationChain[] = [
+export const productsUpdateValidation: ValidationChain[] = [
   body('productName').notEmpty().isString(),
   body('description').notEmpty().isString(),
   body('price').notEmpty().isNumeric(),
@@ -49,12 +49,12 @@ export const getProductsPublicById = async (
       TableName: productsModel.TableName,
       KeyConditionExpression: "#ip = :idProduct",
       FilterExpression: "isActive = :ia",
-      ExpressionAttributeNames:{
-          "#ip": "id"
+      ExpressionAttributeNames: {
+        "#ip": "id"
       },
       ExpressionAttributeValues: {
-          ":idProduct": idProduct,
-          ":ia": true
+        ":idProduct": idProduct,
+        ":ia": true
       }
     }
 
@@ -83,7 +83,7 @@ export const getProductsVenueById = async (
 
 
     // dynamodb parameter
-    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+    const paramGetVenueId: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: venueProfileModel.TableName,
       Key: {
         venueEmail: userDetail.email,
@@ -100,13 +100,13 @@ export const getProductsVenueById = async (
     const paramDB = {
       TableName: productsModel.TableName,
       KeyConditionExpression: "#ip = :idProduct AND #vid = :vi",
-      ExpressionAttributeNames:{
-          "#ip": "id",
-          "#vid": "venueId"
+      ExpressionAttributeNames: {
+        "#ip": "id",
+        "#vid": "venueId"
       },
       ExpressionAttributeValues: {
-          ":idProduct": idProduct,
-          ":vi": resVenueId?.Item.id
+        ":idProduct": idProduct,
+        ":vi": resVenueId?.Item.id
       }
     }
 
@@ -132,7 +132,7 @@ export const getProductsVenueById = async (
  * @param res
  * @param next
  */
- export const getProductByVenueId = async (
+export const getProductByVenueId = async (
   req: RequestAuthenticated,
   res: Response,
   next: NextFunction
@@ -140,8 +140,8 @@ export const getProductsVenueById = async (
   try {
     // validate group
     const user = await validateGroup(req, "venue");
-        
-    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+
+    const paramGetVenueId: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: venueProfileModel.TableName,
       Key: {
         venueEmail: user.email,
@@ -157,10 +157,10 @@ export const getProductsVenueById = async (
     const paramDB = {
       TableName: productsModel.TableName,
       IndexName: "venueId-index",
-      KeyConditionExpression: "venueId = :venueId", 
-      ExpressionAttributeValues: {                
-              ":venueId": resVenueId?.Item.id              
-          }
+      KeyConditionExpression: "venueId = :venueId",
+      ExpressionAttributeValues: {
+        ":venueId": resVenueId?.Item.id
+      }
     }
 
     // query to database
@@ -185,91 +185,91 @@ export const getProductsVenueById = async (
  * @param next NextFunction
  * @returns 
  */
- export const productsStore = async (
-    req: RequestAuthenticated,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      // get userdetail from header
-      const user = userDetail(req);
-  
-      const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
-        TableName: venueProfileModel.TableName,
-        Key: {
-          venueEmail: user.email,
-          cognitoId: user.sub
-        },
-        AttributesToGet: ['id']
-      }
-  
-      // query to database
-      const resVenueId = await ddb.get(paramGetVenueId).promise();
-      console.log(resVenueId?.Item.id);
-      
-      // exapress validate input
-      const errors = validationResult(req);
-      if(!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      // get input
-      const product : products = req.body;
-  
-      // venue profile input with typescript definition
-      const productInput : products = {
-        id: uuidv4(),            
-        venueId: resVenueId?.Item.id,
-        productName: product.productName,
-        description: product.description,
-        price: product.price,
-        category: product.category,
-        images: product.images,
-        proteinType: product.proteinType,
-        isActive: product.isActive,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-  
-      // dynamodb parameter
-      const paramsDB : AWS.DynamoDB.DocumentClient.PutItemInput = {
-        TableName: productsModel.TableName,
-        Item: productInput,
-        ConditionExpression: 'attribute_not_exists(venueId)'
-      }
-  
-      // save data to database
-      await ddb.put(paramsDB).promise();
-  
-      // return result
-      return res.status(200).json({
-        code: 200,
-        message: 'success',
-        data: paramsDB?.Item
-      });
-  
-    } catch (e) {
-      
-      /**
-       * Return error kalau expression data udh ada
-       */
-      if(e?.code == 'ConditionalCheckFailedException') {
-        next(new Error('Data Already Exist.!'));
-      }
-  
-      // return default error
-      next(e);
-    }
-  };
+export const productsStore = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // get userdetail from header
+    const user = userDetail(req);
 
- /**
- * Index Data Function
- *
- * @param req
- * @param res
- * @param next
- */
- export const updateProductById = async (
+    const paramGetVenueId: AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: venueProfileModel.TableName,
+      Key: {
+        venueEmail: user.email,
+        cognitoId: user.sub
+      },
+      AttributesToGet: ['id']
+    }
+
+    // query to database
+    const resVenueId = await ddb.get(paramGetVenueId).promise();
+    console.log(resVenueId?.Item.id);
+
+    // exapress validate input
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // get input
+    const product: products = req.body;
+
+    // venue profile input with typescript definition
+    const productInput: products = {
+      id: uuidv4(),
+      venueId: resVenueId?.Item.id,
+      productName: product.productName,
+      description: product.description,
+      price: product.price,
+      category: product.category,
+      images: product.images,
+      proteinType: product.proteinType,
+      isActive: product.isActive,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    // dynamodb parameter
+    const paramsDB: AWS.DynamoDB.DocumentClient.PutItemInput = {
+      TableName: productsModel.TableName,
+      Item: productInput,
+      ConditionExpression: 'attribute_not_exists(venueId)'
+    }
+
+    // save data to database
+    await ddb.put(paramsDB).promise();
+
+    // return result
+    return res.status(200).json({
+      code: 200,
+      message: 'success',
+      data: paramsDB?.Item
+    });
+
+  } catch (e) {
+
+    /**
+     * Return error kalau expression data udh ada
+     */
+    if (e?.code == 'ConditionalCheckFailedException') {
+      next(new Error('Data Already Exist.!'));
+    }
+
+    // return default error
+    next(e);
+  }
+};
+
+/**
+* Index Data Function
+*
+* @param req
+* @param res
+* @param next
+*/
+export const updateProductById = async (
   req: RequestAuthenticated,
   res: Response,
   next: NextFunction
@@ -278,8 +278,8 @@ export const getProductsVenueById = async (
     // get userdetail from header
     const productId = req.params.id
     const user = userDetail(req);
-  
-    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+
+    const paramGetVenueId: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: venueProfileModel.TableName,
       Key: {
         venueEmail: user.email,
@@ -293,14 +293,14 @@ export const getProductsVenueById = async (
 
     // exapress validate input
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     // get input
-    const product : products = req.body;
+    const product: products = req.body;
 
-    const paramsDB : AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+    const paramsDB: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
       TableName: productsModel.TableName,
       Key: {
         id: productId,
@@ -318,14 +318,14 @@ export const getProductsVenueById = async (
           updatedAt   = :ua
       `,
       ExpressionAttributeValues: {
-        ':pn' : product.productName,
-        ':dc' : product.description,
-        ':pc' : product.price,
-        ':cg' : product.category,
-        ':ig' : product.images,
-        ':pt' : product.proteinType,
-        ':ia' : product.isActive,
-        ':ua' : new Date().toISOString()
+        ':pn': product.productName,
+        ':dc': product.description,
+        ':pc': product.price,
+        ':cg': product.category,
+        ':ig': product.images,
+        ':pt': product.proteinType,
+        ':ia': product.isActive,
+        ':ua': new Date().toISOString()
       },
       ReturnValues: 'UPDATED_NEW',
     }
@@ -340,15 +340,15 @@ export const getProductsVenueById = async (
     });
 
   } catch (e) {
-     /**
-       * Return error kalau expression data udh ada
-       */
-      if(e?.code == 'ConditionalCheckFailedException') {
-        next(new Error('Data Already Exist.!'));
-      }
-  
-      // return default error
-      next(e);
+    /**
+      * Return error kalau expression data udh ada
+      */
+    if (e?.code == 'ConditionalCheckFailedException') {
+      next(new Error('Data Already Exist.!'));
+    }
+
+    // return default error
+    next(e);
   }
 }
 
@@ -360,7 +360,7 @@ export const getProductsVenueById = async (
  * @param next NextFunction
  * @returns 
  */
- export const deleteProductById = async (
+export const deleteProductById = async (
   req: RequestAuthenticated,
   res: Response,
   next: NextFunction
@@ -368,8 +368,8 @@ export const getProductsVenueById = async (
   try {
     const productId = req.params.id
     const user = userDetail(req);
-  
-    const paramGetVenueId : AWS.DynamoDB.DocumentClient.GetItemInput = {
+
+    const paramGetVenueId: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: venueProfileModel.TableName,
       Key: {
         venueEmail: user.email,
@@ -381,7 +381,7 @@ export const getProductsVenueById = async (
     // query to database
     const resVenueId = await ddb.get(paramGetVenueId).promise();
 
-    const paramsDB : AWS.DynamoDB.DocumentClient.DeleteItemInput = {
+    const paramsDB: AWS.DynamoDB.DocumentClient.DeleteItemInput = {
       TableName: productsModel.TableName,
       Key: {
         id: productId,
@@ -400,7 +400,7 @@ export const getProductsVenueById = async (
     /**
        * Return error kalau expression data udh ada
        */
-     if(e?.code == 'ConditionalCheckFailedException') {
+    if (e?.code == 'ConditionalCheckFailedException') {
       next(new Error('Data Already Exist.!'));
     }
 

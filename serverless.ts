@@ -93,6 +93,40 @@ const serverlessConfiguration: Serverless = {
                 },
                 {
                     http: {
+                        method: 'GET',
+                        path: '/venue',
+                        cors: {
+                            origins: '*',
+                            headers: '*',
+                            allowCredentials: true
+                        },
+                        authorizer: {
+                            type: 'COGNITO_USER_POOLS',
+                            name: 'Cognito-1',
+                            arn: '${self:custom.project.cognito}',
+                            identitySource: 'method.request.header.Authorization'
+                        }
+                    },
+                },
+                {
+                    http: {
+                        method: 'POST',
+                        path: '/venue',
+                        cors: {
+                            origins: '*',
+                            headers: '*',
+                            allowCredentials: true
+                        },
+                        authorizer: {
+                            type: 'COGNITO_USER_POOLS',
+                            name: 'Cognito-2',
+                            arn: '${self:custom.project.cognito}',
+                            identitySource: 'method.request.header.Authorization'
+                        }
+                    },
+                },
+                {
+                    http: {
                         method: 'ANY',
                         path: '/venue/{proxy+}',
                         cors: {
@@ -102,7 +136,7 @@ const serverlessConfiguration: Serverless = {
                         },
                         authorizer: {
                             type: 'COGNITO_USER_POOLS',
-                            name: 'Cognito-1',
+                            name: 'Cognito-3',
                             arn: '${self:custom.project.cognito}',
                             identitySource: 'method.request.header.Authorization'
                         }

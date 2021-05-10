@@ -4,28 +4,29 @@ import { products, productsModel, venueProfileModel, productCategory } from "@ap
 import { RequestAuthenticated, validateGroup } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import {appendValidation} from '../utils/validationMessage';
 
 // declare database dynamodb
 const ddb = new AWS.DynamoDB.DocumentClient({ endpoint: process.env.DYNAMODB_LOCAL, convertEmptyValues: true });
 
 export const productsStoreValidation: ValidationChain[] = [
-    body('productName').notEmpty().isString(),
-    body('description').notEmpty().isString(),
-    body('price').notEmpty().isNumeric(),
-    body('category').notEmpty().isString().isIn(productCategory),
-    body('images').notEmpty().isArray(),
-    body('proteinType').notEmpty().isString(),
-    body('isActive').notEmpty().isBoolean()
+    appendValidation("productName", ["isString", "notEmpty"]),
+    appendValidation("description", ["isString", "notEmpty"]),
+    appendValidation("price", ["notEmpty", "isNumeric"]),
+    appendValidation("category", ["isString", "notEmpty"]).isIn(productCategory).withMessage("category must be in Product Category"),
+    appendValidation("images", ["notEmpty", "isArray"]),
+    appendValidation("proteinType", ["isString", "notEmpty"]),
+    appendValidation("isActive", ["isBoolean", "notEmpty"]),
 ]
 
 export const productsUpdateValidation: ValidationChain[] = [
-    body('productName').notEmpty().isString(),
-    body('description').notEmpty().isString(),
-    body('price').notEmpty().isNumeric(),
-    body('category').notEmpty().isString().isIn(productCategory),
-    body('images').notEmpty().isArray(),
-    body('proteinType').notEmpty().isString(),
-    body('isActive').notEmpty().isBoolean()
+    appendValidation("productName", ["isString", "notEmpty"]),
+    appendValidation("description", ["isString", "notEmpty"]),
+    appendValidation("price", ["notEmpty", "isNumeric"]),
+    appendValidation("category", ["isString", "notEmpty"]).isIn(productCategory).withMessage("category must be in Product Category"),
+    appendValidation("images", ["notEmpty", "isArray"]),
+    appendValidation("proteinType", ["isString", "notEmpty"]),
+    appendValidation("isActive", ["isBoolean", "notEmpty"]),
 ]
 
 export const getProductsVenueById = async (

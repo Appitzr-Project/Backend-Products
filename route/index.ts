@@ -17,6 +17,7 @@ import {
     productUploadValidate,
     productMenuUpload
 } from '../controller/productUploadController'
+import {getCategories} from '../controller/categoriesController';
 
 // Route Declare
 const route = express.Router();
@@ -32,9 +33,12 @@ route.post('/venue/upload', productUploadValidate, productMenuUpload);
 
 // catch all id
 route.get('/venue/:id', getProductsVenueById);
-route.get('/:id', getProductsPublicById);
+
+// Route Categories
+route.get("/categories/:type", getCategories);
 
 // Route Get Products by Id Venue (public)
+route.get('/:id', getProductsPublicById);
 route.get('/', getProductByVenueIdPublic);
 
 // health check api

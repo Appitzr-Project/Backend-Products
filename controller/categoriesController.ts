@@ -44,7 +44,7 @@ export const getCategories = async (
         return res.json({
             code: 200,
             message: "success",
-            data: queryDB
+            data: queryDB?.Items
         });
 
     } catch (error) {

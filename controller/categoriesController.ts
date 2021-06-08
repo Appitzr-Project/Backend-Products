@@ -19,7 +19,7 @@ export const getCategories = async (
     next: NextFunction
 ) => {
     try {
-        let type = req.param("type");
+        let type = req.params.type;
         if(type !== "ProductCategory" && type !== "CultureCategory") {
             return res.send({
                 code: 500,
@@ -27,7 +27,7 @@ export const getCategories = async (
             })
         }
 
-        const paramDB = {
+        const paramDB : AWS.DynamoDB.DocumentClient.QueryInput = {
             TableName: categoriesModel.TableName,
             IndexName: "CategoriesTypeIndex",
             KeyConditionExpression: "#type = :type",
@@ -36,7 +36,7 @@ export const getCategories = async (
             },
             ExpressionAttributeValues: {
                 ":type" : type
-            },
+            }
         }
 
         const queryDB = await ddb.query(paramDB).promise();
@@ -44,7 +44,15 @@ export const getCategories = async (
         return res.json({
             code: 200,
             message: "success",
-            data: queryDB?.Items
+            data: queryDB?.Items?.sort((a, b) => {
+                if ( a.name < b.name ){
+                    return -1;
+                  }
+                  if ( a.name > b.name ){
+                    return 1;
+                  }
+                  return 0;
+            })
         });
 
     } catch (error) {

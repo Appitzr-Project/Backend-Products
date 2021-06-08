@@ -65,6 +65,19 @@ const serverlessConfiguration: Serverless = {
             {
                 Effect: 'Allow',
                 Action: [
+                    "dynamodb:BatchGetItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                ],
+                Resource: [
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_Categories',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_Categories/index/*',
+                ],
+            },
+            {
+                Effect: 'Allow',
+                Action: [
                     "s3:GetObject",
                     "s3:PutObject",
                     "s3:PutObjectAcl"
